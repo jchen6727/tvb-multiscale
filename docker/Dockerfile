@@ -155,7 +155,7 @@ RUN cd tvb-root; \
 # Checkout specific branch of tvb-multiscale
 WORKDIR $HOME/packages
 RUN cd tvb-multiscale; \
-    git checkout parallelNEST31; \
+    git checkout parallel; \
     git pull --allow-unrelated-histories
 
 # Compile tvb-netpyne .mod files
