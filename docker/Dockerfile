@@ -146,6 +146,10 @@ RUN $VENV/bin/pip3 install torch
 RUN $VENV/bin/pip3 install sbi
 # RUN $VENV/bin/pip3 install sbibm
 
+# Install Jupyter notebook specific packages
+RUN $VENV/bin/pip3 install ipywidgets ipympl
+RUN $VENV/bin/jupyter nbextension enable --py --sys-prefix widgetsnbextension
+
 # Checkout specific branch of tvb-root
 WORKDIR $HOME/packages
 RUN cd tvb-root; \
@@ -199,9 +203,6 @@ RUN cp -r ${MYMODULES_DIR} ${MYMODULES_BLD_DIR}
 #            make; make install; \
 #    done
 # ----------------------------------------------------------------------------------------------------------------------
-
-RUN $VENV/bin/pip3 install ipywidgets ipympl
-RUN $VENV/bin/jupyter nbextension enable --py --sys-prefix widgetsnbextension
 
 # Final configurations
 # tvb42
