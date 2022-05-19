@@ -78,11 +78,16 @@ RUN cd $NEST; \
     make; make install
 
 # Install nestml
+WORKDIR $HOME/packages
 RUN $VENV/bin/pip3 install setuptools; \
     git clone https://github.com/nest/nestml.git; \
     cd nestml; \
     git fetch origin && git checkout 1b1df6d63eb6ebfc76f3f0f398bd83943020b0e4; \
     $VENV/bin/python setup.py install
+
+# Install NEURON and NetPyNE
+RUN $VENV/bin/pip3 install neuron
+RUN $VENV/bin/pip3 install netpyne
 
 # Install pyNN
 # RUN pip install pyNN
@@ -95,18 +100,15 @@ RUN $VENV/bin/pip3 install setuptools; \
 
 # Install TVB specific packages
 WORKDIR $HOME/packages
-RUN $VENV/bin/pip3 install pandas xarray jupyterlab pytest pytest-cov pytest-benchmark scikit-learn sqlalchemy numba; \
-    $VENV/bin/pip3 install --ignore-installed entrypoints
+RUN $VENV/bin/pip3 install pandas xarray jupyterlab pytest pytest-cov pytest-benchmark scikit-learn sqlalchemy numba ; \
+    $VENV/bin/pip3 install --ignore-installed entrypoints; \
+    $VENV/bin/pip3 install werkzeug==2.0.1;
 
-RUN wget https://zenodo.org/record/3688773/files/tvb-data.zip?download=1 -O tvb_data.zip; \
-    mkdir tvb_data; unzip tvb_data.zip -d tvb_data; rm tvb_data.zip; \
-    cd tvb_data; \
-    $VENV/bin/python setup.py develop
-
-RUN git clone --depth 1 --branch tvb-cosim-consensus-dp https://github.com/the-virtual-brain/tvb-root.git
-ARG LAST_SHA_TVB=LATEST
+# Clone and install tvb-root
+RUN git clone --depth 1 --no-single-branch https://github.com/the-virtual-brain/tvb-root.git
+#ARG LAST_SHA_TVB=LATEST
 RUN cd tvb-root; \
-    git pull origin tvb-cosim-consensus-dp --allow-unrelated-histories; \
+    git pull --allow-unrelated-histories; \
     cd scientific_library; \
     $VENV/bin/python setup.py develop; \
     cd ../framework_tvb; \
@@ -114,14 +116,15 @@ RUN cd tvb-root; \
     cd ../tvb_contrib; \
     $VENV/bin/python setup.py develop
 
-# Install TVB-multiscale specific packages
 
+# Install TVB-multiscale specific packages
+WORKDIR $HOME/packages
 RUN $VENV/bin/pip3 install sympy pyqtgraph lxml pandoc tensorboardX;
 RUN git clone --depth 1 https://bitbucket.org/annarchy/annarchy.git; \
     cd annarchy; \
     $VENV/bin/python3 setup.py install --user
 
-RUN $VENV/bin/pip3 install nose
+WORKDIR $HOME/packages
 RUN git clone --depth 1 https://github.com/mariomulansky/PySpike.git; \
     cd PySpike; \
     $VENV/bin/python3 setup.py build_ext install
@@ -130,15 +133,35 @@ WORKDIR $HOME/packages
 RUN $VENV/bin/pip3 install elephant dill; \
     $VENV/bin/pip3 install --ignore-installed entrypoints
 
-RUN git clone --depth 1 --branch parallel https://github.com/the-virtual-brain/tvb-multiscale.git
+# Clone and install tvb-multiscale
+RUN git clone --depth 1 --no-single-branch https://github.com/the-virtual-brain/tvb-multiscale.git
 ARG LAST_SHA_MULTISCALE=LATEST
 RUN cd tvb-multiscale; \
-    git pull; \
-    $VENV/bin/python setup.py develop --no-deps;
+    git pull origin --allow-unrelated-histories; \
+    $VENV/bin/python setup.py develop --no-deps
 
-# Other packages added in the end for scientific work:
+# Other (large) packages added for scientific work:
 RUN $VENV/bin/pip3 install plotly
-RUN $VENV/bin/pip3 install torch sbi
+RUN $VENV/bin/pip3 install torch
+RUN $VENV/bin/pip3 install sbi
+# RUN $VENV/bin/pip3 install sbibm
+
+# Checkout specific branch of tvb-root
+WORKDIR $HOME/packages
+RUN cd tvb-root; \
+    git checkout tvb-cosim-consensus-dp; \
+    git pull --allow-unrelated-histories
+
+# Checkout specific branch of tvb-multiscale
+WORKDIR $HOME/packages
+RUN cd tvb-multiscale; \
+    git checkout parallelNEST31; \
+    git pull --allow-unrelated-histories
+
+# Compile tvb-netpyne .mod files
+WORKDIR $HOME/packages
+RUN cd tvb-multiscale; \
+    $VENV/bin/nrnivmodl tvb_multiscale/tvb_netpyne/netpyne/mod
 
 WORKDIR /home/docker/
 # Activate the right python env.
