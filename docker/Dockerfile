@@ -113,6 +113,8 @@ RUN cd tvb-root; \
     $VENV/bin/python setup.py develop; \
     cd ../tvb_framework; \
     $VENV/bin/python setup.py develop; \
+    cd ../tvb_storage; \
+    $VENV/bin/python setup.py develop; \
     cd ../tvb_contrib; \
     $VENV/bin/python setup.py develop
 
