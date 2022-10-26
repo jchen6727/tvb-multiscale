@@ -104,6 +104,21 @@ RUN $VENV/bin/pip3 install pandas xarray jupyterlab pytest pytest-cov pytest-ben
     $VENV/bin/pip3 install --ignore-installed entrypoints; \
     $VENV/bin/pip3 install werkzeug==2.0.1;
 
+# Install TVB-multiscale specific packages
+WORKDIR $HOME/packages
+RUN $VENV/bin/pip3 install sympy pyqtgraph lxml pandoc tensorboardX;
+WORKDIR $HOME/packages
+RUN $VENV/bin/pip3 install ANNarchy;
+
+WORKDIR $HOME/packages
+RUN git clone --depth 1 https://github.com/mariomulansky/PySpike.git; \
+    cd PySpike; \
+    $VENV/bin/python3 setup.py build_ext install;
+
+WORKDIR $HOME/packages
+RUN $VENV/bin/pip3 install elephant dill; \
+    $VENV/bin/pip3 install --ignore-installed entrypoints;
+
 # Clone and install tvb-root
 RUN git clone --depth 1 --no-single-branch https://github.com/the-virtual-brain/tvb-root.git
 #ARG LAST_SHA_TVB=LATEST
@@ -131,25 +146,16 @@ RUN git clone --depth 1 https://github.com/mariomulansky/PySpike.git; \
     $VENV/bin/python3 setup.py build_ext install
     
 WORKDIR $HOME/packages
-RUN $VENV/bin/pip3 install elephant dill; \
-    $VENV/bin/pip3 install --ignore-installed entrypoints
-
-# Clone and install tvb-multiscale
-RUN git clone --depth 1 --no-single-branch https://github.com/the-virtual-brain/tvb-multiscale.git
+RUN git clone --depth 1 --no-single-branch https://github.com/the-virtual-brain/tvb-multiscale.git;
 ARG LAST_SHA_MULTISCALE=LATEST
 RUN cd tvb-multiscale; \
     git pull origin --allow-unrelated-histories; \
     $VENV/bin/python setup.py develop --no-deps
 
-# Other (large) packages added for scientific work:
-RUN $VENV/bin/pip3 install plotly
-RUN $VENV/bin/pip3 install torch
-RUN $VENV/bin/pip3 install sbi
-# RUN $VENV/bin/pip3 install sbibm
-
 # Install Jupyter notebook specific packages
-RUN $VENV/bin/pip3 install ipywidgets ipympl
-RUN $VENV/bin/jupyter nbextension enable --py --sys-prefix widgetsnbextension
+WORKDIR $HOME/packages
+RUN $VENV/bin/pip3 install ipywidgets ipympl;
+RUN $VENV/bin/jupyter nbextension enable --py --sys-prefix widgetsnbextension;
 
 # Checkout specific branch of tvb-multiscale
 WORKDIR $HOME/packages
@@ -160,9 +166,9 @@ RUN cd tvb-multiscale; \
 # Compile tvb-netpyne .mod files
 WORKDIR $HOME/packages
 RUN cd tvb-multiscale; \
-    $VENV/bin/nrnivmodl tvb_multiscale/tvb_netpyne/netpyne/mod
+    $VENV/bin/nrnivmodl tvb_multiscale/tvb_netpyne/netpyne/mod;
 
-WORKDIR /home/docker/
+WORKDIR $HOME
 # Activate the right python env.
 ENV NEST_INSTALL_DIR=${NEST_INSTALL_DIR}
 ENV NEST_PYTHON_PREFIX=${NEST_PYTHON_PREFIX}
