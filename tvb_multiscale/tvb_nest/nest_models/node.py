@@ -16,6 +16,13 @@ from tvb_multiscale.core.spiking_models.node import SpikingNodeCollection
 LOG = initialize_logger(__name__)
 
 
+try:
+    from tvb_multiscale.tvb_nest.nest_models.nest_ray import RayNodeCollection
+except:
+    LOG.warn('Unable to import RayNodeCollection! ray remote co-simulation will not be possible!')
+    RayNodeCollection = None
+
+
 class _NESTNodeCollection(HasTraits):
 
     """NESTNodeCollection is a class that
@@ -23,8 +30,9 @@ class _NESTNodeCollection(HasTraits):
        residing at the same brain region.
     """
 
-    _nodes = Attr(field_type=NodeCollection, default=NodeCollection(), required=False,
-                  label="NEST NodeCollection ", doc="""NESTNodeCollection instance""")
+    _nodes = None
+    # _nodes = Attr(field_type=NodeCollection, default=NodeCollection(), required=False,
+    #               label="NEST NodeCollection ", doc="""NESTNodeCollection instance""")
 
     label = Attr(field_type=str, default="", required=True,
                  label="Node label", doc="""Label of NESTNodeCollection""")
@@ -105,7 +113,11 @@ class _NESTNodeCollection(HasTraits):
         if nodes is None:
             return self._nodes
         """Method to assert that the node of the network is valid"""
-        if not isinstance(nodes, self.nest_instance.NodeCollection):
+        if RayNodeCollection is not None:
+            available_classes = (NodeCollection, RayNodeCollection)
+        else:
+            available_classes = NodeCollection
+        if not isinstance(nodes, available_classes):
             if self._nodes:
                 try:
                     return self._nodes[nodes]

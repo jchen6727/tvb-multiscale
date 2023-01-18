@@ -27,10 +27,16 @@ class NESTInterface(HasTraits):
 
     """NESTInterface base class for interfaces sending/receiving data from/to NEST."""
 
-    spiking_network = Attr(label="NEST Network",
-                           doc="""The instance of NESTNetwork class""",
-                           field_type=NESTNetwork,
-                           required=True)
+    spiking_network = None
+    # spiking_network = Attr(label="NEST Network",
+    #                        doc="""The instance of NESTNetwork class""",
+    #                        field_type=NESTNetwork,
+    #                        required=True)
+
+    def __init__(self, spiking_network=None, **kwargs):
+        if spiking_network:
+            self.spiking_network = spiking_network
+        super().__init__(**kwargs)
 
     @property
     def nest_network(self):
@@ -51,6 +57,15 @@ class NESTOutputInterface(SpikeNetOutputInterface, NESTInterface):
                  field_type=NESTOutputDeviceSet,
                  required=True)
 
+    def __init__(self, spiking_network=None, **kwargs):
+        if spiking_network:
+            self.spiking_network = spiking_network
+        super().__init__(**kwargs)
+
+    @property
+    def _time(self):
+        return self.nest_instance.GetKernelStatus("biological_time")
+
     @property
     def _time(self):
         return self.nest_instance.GetKernelStatus("biological_time")
@@ -64,12 +79,22 @@ class NESTSenderInterface(SpikeNetSenderInterface, NESTOutputInterface):
 
     """NESTSenderInterface"""
 
+    def __init__(self, spiking_network=None, **kwargs):
+        if spiking_network:
+            self.spiking_network = spiking_network
+        super().__init__(**kwargs)
+
     def __call__(self):
         return self.send(NESTOutputInterface.get_proxy_data(self))
 
 
 class NESTTransformerSenderInterface(SpikeNetTransformerSenderInterface, NESTOutputInterface):
     """NESTTransformerSenderInterface"""
+
+    def __init__(self, spiking_network=None, **kwargs):
+        if spiking_network:
+            self.spiking_network = spiking_network
+        super().__init__(**kwargs)
 
     def __call__(self):
         return self.transform_send(NESTOutputInterface.get_proxy_data(self))
@@ -85,6 +110,11 @@ class NESTInputInterface(NESTInterface, SpikeNetInputInterface):
                  field_type=NESTInputDeviceSet,
                  required=True)
 
+    def __init__(self, spiking_network=None, **kwargs):
+        if spiking_network:
+            self.spiking_network = spiking_network
+        super().__init__(**kwargs)
+
     @property
     def proxy_gids(self):
         return self._get_proxy_gids(self.proxy.target)
@@ -93,13 +123,19 @@ class NESTInputInterface(NESTInterface, SpikeNetInputInterface):
 class NESTReceiverInterface(SpikeNetReceiverInterface, NESTInputInterface):
     """NESTReceiverInterface"""
 
-    pass
+    def __init__(self, spiking_network=None, **kwargs):
+        if spiking_network:
+            self.spiking_network = spiking_network
+        super().__init__(**kwargs)
 
 
 class NESTReceiverTransformerInterface(SpikeNetReceiverTransformerInterface, NESTInputInterface):
     """NESTReceiverTransformerInterface"""
 
-    pass
+    def __init__(self, spiking_network=None, **kwargs):
+        if spiking_network:
+            self.spiking_network = spiking_network
+        super().__init__(**kwargs)
 
 
 class TVBtoNESTInterface(TVBtoSpikeNetInterface, NESTInputInterface):
@@ -108,7 +144,10 @@ class TVBtoNESTInterface(TVBtoSpikeNetInterface, NESTInputInterface):
        and finally set them to NEST, all processes taking place in shared memmory.
     """
 
-    pass
+    def __init__(self, spiking_network=None, **kwargs):
+        if spiking_network:
+            self.spiking_network = spiking_network
+        super().__init__(**kwargs)
 
 
 class NESTtoTVBInterface(SpikeNetToTVBInterface, NESTOutputInterface):
@@ -117,10 +156,13 @@ class NESTtoTVBInterface(SpikeNetToTVBInterface, NESTOutputInterface):
        and finally set them to TVB, all processes taking place in shared memmory.
     """
 
+    def __init__(self, spiking_network=None, **kwargs):
+        if spiking_network:
+            self.spiking_network = spiking_network
+        super().__init__(**kwargs)
+
     def get_proxy_data(self):
         return NESTOutputInterface.get_proxy_data(self)
-
-    pass
 
 
 class NESTInterfaces(HasTraits):

@@ -18,6 +18,7 @@ from tvb_multiscale.core.neotraits import HasTraits
 from tvb_multiscale.core.tvb.cosimulator.cosimulator import CoSimulator
 from tvb_multiscale.core.tvb.cosimulator.cosimulator_serial import CoSimulatorSerial
 from tvb_multiscale.core.tvb.cosimulator.cosimulator_parallel import CoSimulatorParallel
+from tvb_multiscale.core.tvb.cosimulator.cosimulator_ray import CoSimulatorParallelRay
 
 
 class CoSimulatorBuilder(HasTraits):
@@ -335,3 +336,17 @@ class CoSimulatorSerialBuilder(CoSimulatorBuilder):
     """
 
     _cosimulator_type = CoSimulatorSerial
+
+
+class CoSimulatorRayBuilder(CoSimulatorBuilder):
+    """CoSimulatorRayBuilder is an opinionated builder for a TVB CoSimulatorRay,
+       adjusted for Ray cosimulation.
+       Depending on its properties set, the builder may
+       - scale/normalize the connectivity weights,
+       - remove time delays or not,
+       - remove the self-connections or brain region nodes (diagonal of connectivity matrix)
+       - set integrator (including noise and integration step),
+       - set monitor (including model's variables of interest and period)
+    """
+
+    _cosimulator_type = CoSimulatorParallelRay
